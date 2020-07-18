@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"commentapi/models"
 	"testing"
 
 	"github.com/gobuffalo/packr/v2"
@@ -21,4 +22,16 @@ func Test_ActionSuite(t *testing.T) {
 		Action: action,
 	}
 	suite.Run(t, as)
+}
+
+func (as *ActionSuite) createComment(owner, message, subject string) *models.Comment {
+	comment := &models.Comment{
+		Owner:   owner,
+		Message: message,
+		Subject: subject,
+	}
+
+	as.NoError(as.DB.Create(comment))
+	return comment
+
 }

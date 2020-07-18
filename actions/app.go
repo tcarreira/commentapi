@@ -59,6 +59,9 @@ func App() *buffalo.App {
 		app.Use(popmw.Transaction(models.DB))
 
 		app.GET("/", HomeHandler)
+
+		api := app.Group("/api/v1")
+		api.Resource("/comments", CommentsResource{})
 	}
 
 	return app

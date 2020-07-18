@@ -1,0 +1,7 @@
+create_table("comments") {
+	t.Column("id", "uuid", {primary: true})
+	t.Column("owner", "string", {})
+	t.Column("message", "string", {})
+	t.Column("subject", "string", {})
+	t.Timestamps()
+}
