@@ -40,7 +40,7 @@ func (c Comments) String() string {
 func (c *Comment) Validate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.Validate(
 		&validators.StringIsPresent{Field: c.Owner, Name: "Owner"},
-		&validators.StringIsPresent{Field: c.Message, Name: "Text"},
+		&validators.StringIsPresent{Field: c.Message, Name: "Message"},
 		&validators.StringIsPresent{Field: c.Subject, Name: "SubjectID"},
 	), nil
 }
