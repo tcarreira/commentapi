@@ -7,7 +7,7 @@ jobs:
   container-job:
     name: Build
     runs-on: ubuntu-latest
-    container: container-job
+    container: gobuffalo/buffalo:v0.16.10
 
     services:
       postgres:
