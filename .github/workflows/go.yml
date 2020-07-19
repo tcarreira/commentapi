@@ -15,6 +15,7 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DATABASE: commentapi_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
