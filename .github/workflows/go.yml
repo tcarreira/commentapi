@@ -34,7 +34,7 @@ jobs:
     - name: Test
       run: TEST_DATABASE_URL="postgres://postgres:postgres@postgres:5432/commentapi_test?sslmode=disable" buffalo test
 
-    - if: github.ref == 'master'
+    - if: github.ref == 'refs/heads/master'
       name: Build and push Docker image (Docker Hub)
       uses: docker/build-push-action@v1
       with:
