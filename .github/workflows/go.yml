@@ -4,9 +4,10 @@ on: [push, pull_request]
 
 jobs:
 
-  build:
+  container-job:
     name: Build
     runs-on: ubuntu-latest
+    container: container-job
 
     services:
       postgres:
@@ -25,12 +26,6 @@ jobs:
 
     steps:
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.13
-      id: go
-
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
@@ -38,7 +33,7 @@ jobs:
       run: go get -v -t -d ./...
 
     - name: Build
-      run: go build -v .
+      run: buffalo build --static -o commentapi-linux
 
     - name: Test
       run: buffalo test
