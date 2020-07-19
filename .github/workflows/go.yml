@@ -3,10 +3,23 @@ name: Go
 on: [push, pull_request]
 
 jobs:
-
-  build:
+  container-job:
     name: Build
     runs-on: ubuntu-latest
+    container: ubuntu:latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DATABASE: commentapi_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
 
     - name: Set up Go 1.x
