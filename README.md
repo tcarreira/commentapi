@@ -1,35 +1,36 @@
-# Welcome to Buffalo!
+# Simple CRUD REST API for managing comments!
 
-Thank you for choosing Buffalo for your web development needs.
+That's all
 
 ## Database Setup
 
-It looks like you chose to set up your application using a database! Fantastic!
-
-The first thing you need to do is open up the "database.yml" file and edit it to use the correct usernames, passwords, hosts, etc... that are appropriate for your environment.
-
-You will also need to make sure that **you** start/install the database of your choice. Buffalo **won't** install and start it for you.
+Edit `database.yml` file and edit it to use the correct usernames, passwords, hosts, etc... that are appropriate for your environment.
 
 ### Create Your Databases
 
-Ok, so you've edited the "database.yml" file and started your database, now Buffalo can create the databases in that file for you:
+`buffalo setup`
 
-	$ buffalo pop create -a
+or
+
+`buffalo setup -d` # deletes existing database
 
 ## Starting the Application
 
-Buffalo ships with a command that will watch your application and automatically rebuild the Go binary and any assets for you. To do that run the "buffalo dev" command:
+`buffalo dev`
 
-	$ buffalo dev
+And access it on [http://127.0.0.1:3000](http://127.0.0.1:3000)
 
-If you point your browser to [http://127.0.0.1:3000](http://127.0.0.1:3000) you should see a "Welcome to Buffalo!" page.
+### Endpoints
 
-**Congratulations!** You now have your Buffalo application up and running.
+`/api/v1/comments` -> CRUD endpoint
 
-## What Next?
+examples:
+- create comment: `curl 'http://127.0.0.1:3000/api/v1/comments' -d '{"owner":"u","message":"This is a comment","subject":"topic 1"}' `
+- list all comments: `curl 'http://127.0.0.1:3000/api/v1/comments'`
+- show simple comment: `curl 'http://127.0.0.1:3000/api/v1/comments/693c650c-0908-4d79-9741-7327a6fc945f'`
+- delete comment: `curl -XDELETE 'http://127.0.0.1:3000/api/v1/comments/693c650c-0908-4d79-9741-7327a6fc945f'`
 
-We recommend you heading over to [http://gobuffalo.io](http://gobuffalo.io) and reviewing all of the great documentation there.
 
-Good luck!
+## Tests
 
-[Powered by Buffalo](http://gobuffalo.io)
+`buffalo test`
