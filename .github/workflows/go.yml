@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     container: gobuffalo/buffalo:v0.16.10
 
+    # Testing database
     services:
       postgres:
         image: postgres:12.0-alpine
