@@ -1,12 +1,13 @@
 
-
 resource "kubernetes_deployment" "postgres" {
   metadata {
     name = "postgres"
+    namespace = "application-namespace"
     labels = {
       App = "postgres"
     }
   }
+
 
   spec {
     replicas = 1
@@ -32,7 +33,7 @@ resource "kubernetes_deployment" "postgres" {
 
           env {
             name = "POSTGRES_DB"
-            value = "commentapi_production"
+            value = "commentapi"
           }
           env {
             name = "POSTGRES_USER"
@@ -59,10 +60,11 @@ resource "kubernetes_deployment" "postgres" {
             }
           }
         }
+        
         volume {
           name = "pgdata"
           host_path {
-            path = "/pgdata20200721"
+            path = "/commentapi-pgdata"
           }
         }
       }
@@ -73,6 +75,7 @@ resource "kubernetes_deployment" "postgres" {
 resource "kubernetes_service" "postgres" {
   metadata {
     name = "postgres"
+    namespace = "application-namespace"
   }
   spec {
     selector = {

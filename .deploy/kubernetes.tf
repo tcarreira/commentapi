@@ -1,10 +1,44 @@
 provider "kubernetes" {}
 
-resource "kubernetes_deployment" "nginx" {
+resource "kubernetes_namespace" "application-namespace" {
   metadata {
-    name = "scalable-nginx-example"
+    annotations = {
+      name = "application-namespace"
+    }
+
+    name = "application-namespace"
+  }
+}
+
+variable "POSTGRES_HOST" {}
+variable "POSTGRES_PORT" {}
+variable "POSTGRES_DB" {}
+variable "POSTGRES_USER" {}
+variable "POSTGRES_PASSWORD" {}
+
+resource "kubernetes_secret" "database-secret" {
+  metadata {
+    name = "database-secret"
+    namespace = "application-namespace"
+  }
+
+  data = {
+    DATABASE_URL      = "postgres://${var.POSTGRES_USER}:${var.POSTGRES_PASSWORD}@${var.POSTGRES_HOST}:${var.POSTGRES_PORT}/${var.POSTGRES_DB}?sslmode=disable"
+    POSTGRES_HOST     = var.POSTGRES_HOST
+    POSTGRES_PORT     = var.POSTGRES_PORT
+    POSTGRES_DB       = var.POSTGRES_DB
+    POSTGRES_USER     = var.POSTGRES_USER
+    POSTGRES_PASSWORD = var.POSTGRES_PASSWORD
+  }
+}
+
+
+resource "kubernetes_deployment" "application-deployment" {
+  metadata {
+    name      = "application-deployment"
+    namespace = "application-namespace"
     labels = {
-      App = "ScalableNginxExample"
+      App = "CommentAPI"
     }
   }
 
@@ -12,24 +46,32 @@ resource "kubernetes_deployment" "nginx" {
     replicas = 2
     selector {
       match_labels = {
-        App = "ScalableNginxExample"
+        App = "CommentAPI"
       }
     }
     template {
       metadata {
         labels = {
-          App = "ScalableNginxExample"
+          App = "CommentAPI"
         }
       }
       spec {
         container {
           image = "tcarreira/commentapi:sha-cc54cfd"
           # image = "tutum/hello-world"
-          name  = "example"
+          name = "commentapi"
 
           env {
             name = "DATABASE_URL"
-            value = "postgres://user:secretpass@postgres:5432/commentapi_production?sslmode=disable"
+            value_from {
+              secret_key_ref {
+                name = "database-secret"
+                key  = "DATABASE_URL"
+              }
+            }
+
+
+            # value = "postgres://user:secretpass@postgres:5432/commentapi?sslmode=disable"
           }
 
           port {
@@ -56,13 +98,15 @@ resource "kubernetes_deployment" "nginx" {
 }
 
 
-resource "kubernetes_service" "nginx-example" {
+resource "kubernetes_service" "application-service" {
   metadata {
-    name = "nginx-example"
+    name      = "application-service"
+    namespace = "application-namespace"
   }
+
   spec {
     selector = {
-      App = "ScalableNginxExample"
+      App = "CommentAPI"
     }
     port {
       port        = 8080
@@ -74,16 +118,17 @@ resource "kubernetes_service" "nginx-example" {
 }
 
 
-resource "kubernetes_ingress" "example_ingress" {
+resource "kubernetes_ingress" "application-ingress" {
   metadata {
-    name = "example-ingress"
+    name      = "application-ingress"
+    namespace = "application-namespace"
   }
 
   wait_for_load_balancer = true
 
   spec {
     backend {
-      service_name = "nginx-example"
+      service_name = "application-service"
       service_port = 8080
     }
 
@@ -92,20 +137,11 @@ resource "kubernetes_ingress" "example_ingress" {
       http {
         path {
           backend {
-            service_name = "nginx-example"
+            service_name = "application-service"
             service_port = 8080
           }
 
-          path = "/app1/*"
-        }
-
-        path {
-          backend {
-            service_name = "nginx-example"
-            service_port = 8080
-          }
-
-          path = "/app2/*"
+          path = "/*"
         }
       }
     }
