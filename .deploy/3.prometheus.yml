@@ -2,23 +2,6 @@ global:
   scrape_interval: 10s
 
 scrape_configs:
-- job_name: 'kubelet'
-  kubernetes_sd_configs:
-  - role: node
-  scheme: https
-  tls_config:
-    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-    insecure_skip_verify: true  # Required with Minikube.
-
-- job_name: 'cadvisor'
-  kubernetes_sd_configs:
-  - role: node
-  scheme: https
-  tls_config:
-    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-    insecure_skip_verify: true  # Required with Minikube.
-  metrics_path: /metrics/cadvisor
-
 - job_name: 'k8apiserver'
   kubernetes_sd_configs:
   - role: endpoints
@@ -35,6 +18,7 @@ scrape_configs:
 - job_name: 'k8services'
   kubernetes_sd_configs:
   - role: endpoints
+  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
   relabel_configs:
   - source_labels:
       - __meta_kubernetes_namespace
@@ -58,3 +42,16 @@ scrape_configs:
   - source_labels: [__meta_kubernetes_pod_container_name]
     target_label: job
 
+- job_name: 'kubernetes-service-endpoints'
+  kubernetes_sd_configs:
+  - role: endpoints
+  relabel_configs:
+  - action: labelmap
+    regex: __meta_kubernetes_service_label_(.+)
+  - source_labels: [__meta_kubernetes_namespace]
+    action: replace
+    target_label: kubernetes_namespace
+  - source_labels: [__meta_kubernetes_service_name]
+    action: replace
+    target_label: kubernetes_name
+  

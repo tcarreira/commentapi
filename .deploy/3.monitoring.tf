@@ -16,8 +16,17 @@ resource "kubernetes_cluster_role" "prometheus" {
   }
   rule {
     api_groups = [""]
-    resources  = ["namespaces", "pods", "nodes", "endpoints"]
+    resources  = ["namespaces", "pods", "nodes", "endpoints", "services", "deployments", "ingresses"]
     verbs      = ["get", "list", "watch"]
+  }
+  rule {
+    api_groups = ["extensions"]
+    resources  = ["ingresses"]
+    verbs      = ["get", "list", "watch"]
+  }
+  rule {
+    non_resource_urls = ["/metrics"]
+    verbs = ["get"]
   }
 }
 
@@ -26,6 +35,7 @@ resource "kubernetes_service_account" "prometheus" {
     name = "prometheus"
     namespace = "monitoring"
   }
+  automount_service_account_token = true
 }
 
 resource "kubernetes_cluster_role_binding" "prometheus" {
@@ -35,7 +45,7 @@ resource "kubernetes_cluster_role_binding" "prometheus" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = "prometheus"
+    name      = kubernetes_cluster_role.prometheus.id
   }
   subject {
     kind      = "ServiceAccount"
@@ -96,12 +106,6 @@ resource "kubernetes_deployment" "prometheus" {
             name       = kubernetes_service_account.prometheus.default_secret_name
             read_only  = true
           }
-
-          # volume_mount {
-          #   mount_path = "/var/run/secrets/kubernetes.io/serviceaccount/token:"
-          #   name       = kubernetes_service_account.prometheus.default_secret_name
-          #   read_only  = true
-          # }
 
           resources {
             limits {
