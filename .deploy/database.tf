@@ -2,7 +2,7 @@
 resource "kubernetes_deployment" "postgres" {
   metadata {
     name = "postgres"
-    namespace = "application-namespace"
+    namespace = "commentapi"
     labels = {
       App = "postgres"
     }
@@ -60,7 +60,7 @@ resource "kubernetes_deployment" "postgres" {
             }
           }
         }
-        
+
         volume {
           name = "pgdata"
           host_path {
@@ -75,7 +75,7 @@ resource "kubernetes_deployment" "postgres" {
 resource "kubernetes_service" "postgres" {
   metadata {
     name = "postgres"
-    namespace = "application-namespace"
+    namespace = "commentapi"
   }
   spec {
     selector = {

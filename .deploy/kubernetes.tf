@@ -1,31 +1,23 @@
 provider "kubernetes" {}
-
-resource "kubernetes_namespace" "application-namespace" {
+resource "kubernetes_namespace" "commentapi" {
   metadata {
     annotations = {
-      name = "application-namespace"
+      name = "commentapi"
     }
-
-    name = "application-namespace"
+    name = "commentapi"
   }
 }
 
-variable "POSTGRES_HOST" {}
-variable "POSTGRES_PORT" {}
-variable "POSTGRES_DB" {}
-variable "POSTGRES_USER" {}
-variable "POSTGRES_PASSWORD" {}
-
 resource "kubernetes_secret" "database-secret" {
   metadata {
-    name = "database-secret"
-    namespace = "application-namespace"
+    name      = "database-secret"
+    namespace = "commentapi"
   }
 
   data = {
-    DATABASE_URL      = "postgres://${var.POSTGRES_USER}:${var.POSTGRES_PASSWORD}@${var.POSTGRES_HOST}:${var.POSTGRES_PORT}/${var.POSTGRES_DB}?sslmode=disable"
+    DATABASE_URL      = "postgres://${var.POSTGRES_USER}:${var.POSTGRES_PASSWORD}@${var.POSTGRES_HOST}:5432/${var.POSTGRES_DB}?sslmode=disable"
     POSTGRES_HOST     = var.POSTGRES_HOST
-    POSTGRES_PORT     = var.POSTGRES_PORT
+    POSTGRES_PORT     = "5432"
     POSTGRES_DB       = var.POSTGRES_DB
     POSTGRES_USER     = var.POSTGRES_USER
     POSTGRES_PASSWORD = var.POSTGRES_PASSWORD
@@ -33,10 +25,10 @@ resource "kubernetes_secret" "database-secret" {
 }
 
 
-resource "kubernetes_deployment" "application-deployment" {
+resource "kubernetes_deployment" "commentapi" {
   metadata {
-    name      = "application-deployment"
-    namespace = "application-namespace"
+    name      = "commentapi"
+    namespace = "commentapi"
     labels = {
       App = "CommentAPI"
     }
@@ -57,9 +49,9 @@ resource "kubernetes_deployment" "application-deployment" {
       }
       spec {
         container {
-          image = "tcarreira/commentapi:sha-cc54cfd"
-          # image = "tutum/hello-world"
-          name = "commentapi"
+          # image = "tcarreira/commentapi:sha-cc54cfd"
+          image = "tutum/hello-world"
+          name  = "commentapi"
 
           env {
             name = "DATABASE_URL"
@@ -69,16 +61,10 @@ resource "kubernetes_deployment" "application-deployment" {
                 key  = "DATABASE_URL"
               }
             }
-
-
-            # value = "postgres://user:secretpass@postgres:5432/commentapi?sslmode=disable"
           }
 
           port {
             container_port = 80
-          }
-          port {
-            container_port = 3000
           }
 
           resources {
@@ -97,38 +83,48 @@ resource "kubernetes_deployment" "application-deployment" {
   }
 }
 
-
-resource "kubernetes_service" "application-service" {
+resource "kubernetes_service" "commentapi" {
   metadata {
-    name      = "application-service"
-    namespace = "application-namespace"
+    name      = "commentapi"
+    namespace = "commentapi"
   }
 
   spec {
+    type = "LoadBalancer"
+
     selector = {
       App = "CommentAPI"
     }
+    
     port {
-      port        = 8080
-      target_port = 3000
+      name     = "http"
+      port     = 80
+      target_port = 80
+      protocol = "TCP"
     }
 
-    type = "NodePort"
+    port {
+      name     = "https"
+      port     = 443
+      target_port = 80
+      protocol = "TCP"
+    }
+
   }
 }
 
 
-resource "kubernetes_ingress" "application-ingress" {
+resource "kubernetes_ingress" "commentapi" {
   metadata {
-    name      = "application-ingress"
-    namespace = "application-namespace"
+    name      = "commentapi"
+    namespace = "commentapi"
   }
 
   wait_for_load_balancer = true
 
   spec {
     backend {
-      service_name = "application-service"
+      service_name = "commentapi"
       service_port = 8080
     }
 
@@ -137,7 +133,7 @@ resource "kubernetes_ingress" "application-ingress" {
       http {
         path {
           backend {
-            service_name = "application-service"
+            service_name = "commentapi"
             service_port = 8080
           }
 
