@@ -60,7 +60,9 @@ func App() *buffalo.App {
 		app.Use(popmw.Transaction(models.DB))
 
 		app.GET("/", HomeHandler)
-		app.GET("/metrics", buffalo.WrapHandler(promhttp.Handler()))
+
+		app.Middleware.Skip(forceSSL(), promHTTPHandler())
+		app.GET("/metrics", promHTTPHandler())
 
 		api := app.Group("/api/v1")
 		api.Resource("/comments", CommentsResource{})
@@ -79,4 +81,8 @@ func forceSSL() buffalo.MiddlewareFunc {
 		SSLRedirect:     ENV == "production",
 		SSLProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
 	})
+}
+
+func promHTTPHandler() buffalo.Handler {
+	return buffalo.WrapHandler(promhttp.Handler())
 }
