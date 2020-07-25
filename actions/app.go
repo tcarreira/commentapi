@@ -5,6 +5,7 @@ import (
 	"github.com/gobuffalo/envy"
 	forcessl "github.com/gobuffalo/mw-forcessl"
 	paramlogger "github.com/gobuffalo/mw-paramlogger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/unrolled/secure"
 
 	"commentapi/models"
@@ -59,6 +60,7 @@ func App() *buffalo.App {
 		app.Use(popmw.Transaction(models.DB))
 
 		app.GET("/", HomeHandler)
+		app.GET("/metrics", buffalo.WrapHandler(promhttp.Handler()))
 
 		api := app.Group("/api/v1")
 		api.Resource("/comments", CommentsResource{})
